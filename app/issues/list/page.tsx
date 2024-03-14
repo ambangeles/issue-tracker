@@ -50,9 +50,7 @@ const IssuesPage = async ({
 		where: {
 			status: status,
 		},
-		orderBy: {
-			[searchParams.orderBy]: "asc",
-		},
+		orderBy
 	});
 
 	return (
