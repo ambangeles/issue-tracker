@@ -1,12 +1,59 @@
 import prisma from "@/prisma/client";
-import { Table } from "@radix-ui/themes";
+import { Box, Flex, Table } from "@radix-ui/themes";
 import React from "react";
-import { IssueStatusBadge } from "@/app/components";
+import { IssueStatusBadge, Link } from "@/app/components";
 import IssueActions from "./IssueActions";
-import { Link } from "@/app/components";
+import { Issue, Status } from "@prisma/client";
+import NextLink from "next/link";
+import { ArrowUpIcon } from "@radix-ui/react-icons";
+import { title } from "process";
 
-const IssuesPage = async () => {
-	const issues = await prisma.issue.findMany();
+const IssuesPage = async ({
+	searchParams,
+}: {
+	searchParams: { status: Status; orderBy: keyof Issue };
+}) => {
+	const statuses = Object.values(Status);
+
+	const status = statuses.includes(searchParams.status)
+		? searchParams.status
+		: undefined;
+
+	const columns: {
+		label: string;
+		value: keyof Issue;
+		clasName?: string;
+	}[] = [
+		{
+			label: "Issue",
+			value: "title",
+		},
+		{
+			label: "Status",
+			value: "status",
+			clasName: "hidden md:table-cell",
+		},
+		{
+			label: "Created",
+			value: "createdAt",
+			clasName: "hidden md:table-cell",
+		},
+	];
+
+	const orderBy = columns
+		.map((column) => column.value)
+		.includes(searchParams.orderBy)
+		? { [searchParams.orderBy]: "asc" }
+		: undefined;
+
+	const issues = await prisma.issue.findMany({
+		where: {
+			status: status,
+		},
+		orderBy: {
+			[searchParams.orderBy]: "asc",
+		},
+	});
 
 	return (
 		<div>
@@ -14,13 +61,28 @@ const IssuesPage = async () => {
 			<Table.Root variant="surface">
 				<Table.Header>
 					<Table.Row>
-						<Table.ColumnHeaderCell>Issues</Table.ColumnHeaderCell>
-						<Table.ColumnHeaderCell className="hidden md:table-cell">
-							Status
-						</Table.ColumnHeaderCell>
-						<Table.ColumnHeaderCell className="hidden md:table-cell">
-							Created
-						</Table.ColumnHeaderCell>
+						{columns.map((column) => (
+							<Table.ColumnHeaderCell
+								className={column.clasName}
+								key={column.value}
+							>
+								<Flex align={"center"}>
+									<NextLink
+										href={{
+											query: {
+												...searchParams,
+												orderBy: column.value,
+											},
+										}}
+									>
+										{column.label}
+									</NextLink>
+									{column.value === searchParams.orderBy && (
+										<ArrowUpIcon />
+									)}
+								</Flex>
+							</Table.ColumnHeaderCell>
+						))}
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
