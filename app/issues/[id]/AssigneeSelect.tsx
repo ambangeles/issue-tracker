@@ -34,7 +34,7 @@ const AssigneeSelect = ({ issue }: { issue: Issue }) => {
 				onValueChange={assignIssue}
 				
 			>
-				<Select.Trigger placeholder={"Assign..."} />
+				<Select.Trigger />
 				<Select.Content>
 					<Select.Group>
 						<Select.Label>Sugggestions</Select.Label>
